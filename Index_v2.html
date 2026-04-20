@@ -50,10 +50,7 @@
         let countdown;
         let timeLeft = 0;
         
-        // 填入你刚才提供的 Gemini API Key
-        const API_KEY = 'AIzaSyASY07rpUofgeuWa2ECbK1IDQeNo9y2-IM'; 
-        // 使用目前响应极快且智能的 gemini-2.5-flash 模型
-        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
+        const API_URL = 'https://xueyihui-proxy.jineric73.workers.dev';
 
         async function generateTasks() {
             const context = document.getElementById('project-context').value;
@@ -82,13 +79,9 @@
                 // 向 Gemini 发送真实的 HTTP 请求
                 const response = await fetch(API_URL, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        contents: [{
-                            parts: [{ text: promptText }]
-                        }]
+                        contents: [{ parts: [{ text: promptText }] }]
                     })
                 });
 
