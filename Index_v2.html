@@ -7,73 +7,127 @@
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#2563eb">
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="学一会">
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .ring-bg { stroke: #e5e7eb; }
+        .ring-progress {
+            stroke: #2563eb;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 1s linear;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+        .ring-done { stroke: #22c55e; }
+    </style>
 </head>
-<body class="bg-gray-50 h-screen flex items-center justify-center p-4 font-sans">
+<body class="bg-gray-50 min-h-screen flex items-center justify-center p-4 font-sans">
 
     <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md">
-        <h1 class="text-2xl font-bold text-gray-800 mb-2">⏳ 学一会</h1>
+        <h1 class="text-2xl font-bold text-gray-800 mb-1">⏳ 学一会</h1>
         <p class="text-sm text-gray-500 mb-6">不要想整个项目，只看眼前的几分钟。</p>
 
+        <!-- 输入区 -->
         <div id="input-section" class="space-y-4">
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">你卡在哪了？(上次的进度)</label>
-                <textarea id="project-context" rows="3" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="例如：论文第三章的数据分析写了一半，不知道怎么开头..."></textarea>
+                <textarea id="project-context" rows="3"
+                    class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none resize-none"
+                    placeholder="例如：论文第三章的数据分析写了一半，不知道怎么开头..."></textarea>
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">你现在有多少碎片时间？(分钟)</label>
-                <input type="number" id="available-time" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="15">
+                <input type="number" id="available-time" min="1" max="120"
+                    class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none"
+                    placeholder="15">
             </div>
-            <button onclick="generateTasks()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition">
+            <button onclick="generateTasks()"
+                class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 active:bg-blue-800 transition">
                 召唤 AI 帮我拆解
             </button>
         </div>
 
+        <!-- 任务 + 计时区 -->
         <div id="task-section" class="hidden space-y-6">
+            <!-- AI 微任务 -->
             <div class="bg-blue-50 p-4 rounded-lg border border-blue-100">
                 <h2 class="text-sm font-bold text-blue-800 mb-2">💡 你的微任务：</h2>
                 <div id="ai-task-text" class="text-gray-700 text-sm leading-relaxed">AI 正在为你精准拆解任务，请稍候... 🧠</div>
             </div>
-            
-            <div class="text-center">
-                <div id="timer-display" class="text-5xl font-mono font-bold text-gray-800 mb-4">00:00</div>
-                <button id="timer-btn" onclick="startTimer()" class="w-full bg-green-500 text-white font-bold py-3 rounded-lg hover:bg-green-600 transition">
+
+            <!-- 计时器 -->
+            <div class="flex flex-col items-center gap-4">
+                <!-- 环形进度条 -->
+                <div class="relative w-44 h-44">
+                    <svg class="w-full h-full" viewBox="0 0 120 120">
+                        <circle class="ring-bg" cx="60" cy="60" r="52" fill="none" stroke-width="8"/>
+                        <circle id="ring" class="ring-progress" cx="60" cy="60" r="52" fill="none" stroke-width="8"
+                            stroke-dasharray="326.7" stroke-dashoffset="0"/>
+                    </svg>
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <span id="timer-display" class="text-3xl font-mono font-bold text-gray-800">00:00</span>
+                    </div>
+                </div>
+
+                <!-- 开始按钮 -->
+                <button id="start-btn" onclick="startTimer()"
+                    class="w-full bg-green-500 text-white font-bold py-3 rounded-lg hover:bg-green-600 active:bg-green-700 transition">
                     开始专注
                 </button>
+
+                <!-- 放弃按钮（计时中才显示） -->
+                <button id="abandon-btn" onclick="confirmAbandon()"
+                    class="hidden w-full text-gray-400 text-sm py-2 rounded-lg border border-gray-200 hover:border-red-300 hover:text-red-400 transition">
+                    放弃这一局
+                </button>
             </div>
+        </div>
+
+        <!-- 完成区 -->
+        <div id="done-section" class="hidden text-center space-y-5">
+            <div class="text-5xl">🎉</div>
+            <div>
+                <p class="text-xl font-bold text-gray-800">完成了！</p>
+                <p class="text-sm text-gray-500 mt-1">记录一下刚才推进了多少，哪怕一点点都算。</p>
+            </div>
+            <textarea id="progress-note" rows="3"
+                class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500 outline-none resize-none text-sm"
+                placeholder="我刚才做了... (可选)"></textarea>
+            <button onclick="restart()"
+                class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition">
+                再来一局
+            </button>
         </div>
     </div>
 
     <script>
         let countdown;
         let timeLeft = 0;
-        
+        let totalTime = 0;
+        const CIRCUMFERENCE = 326.7; // 2 * π * 52
+
         const API_URL = 'https://xueyihui-proxy.jineric73.workers.dev';
 
         async function generateTasks() {
-            const context = document.getElementById('project-context').value;
-            const minutes = document.getElementById('available-time').value;
+            const context = document.getElementById('project-context').value.trim();
+            const minutes = parseInt(document.getElementById('available-time').value);
 
-            if (!context || !minutes) {
+            if (!context || !minutes || minutes < 1) {
                 alert("请先告诉我要做什么，以及你有多少时间哦！");
                 return;
             }
 
-            // 切换 UI
-            document.getElementById('input-section').classList.add('hidden');
-            document.getElementById('task-section').classList.remove('hidden');
-            
-            // 初始化倒计时
-            timeLeft = minutes * 60;
+            show('task-section');
+            timeLeft = totalTime = minutes * 60;
             updateTimerDisplay();
+            resetRing();
 
             const taskTextElement = document.getElementById('ai-task-text');
             taskTextElement.innerHTML = "AI 正在为你精准拆解任务，请稍候... 🧠";
 
-            // 精心设计的提示词 (Prompt)
-            const promptText = `你是一个反拖延症教练。你的任务是把庞大的长期项目，拆解为极其简单、具体、不需要消耗意志力就能开始的'微任务'。不要说废话，直接输出 1-2 个具体的行动指令。不同任务之间请使用 HTML 的 <br><br> 标签换行。\n\n用户的项目上次停在：${context}。\n用户现在只有 ${minutes} 分钟的碎片时间。\n请直接给出立刻能做的微任务。`;
+            const promptText = `你是一个反拖延症教练。你的任务是把庞大的长期项目，拆解为极其简单、具体、不需要消耗意志力就能开始的'微任务'。不要说废话，直接输出 1-2 个具体的行动指令。不同任务之间请用换行分隔，不要用 Markdown 格式。\n\n用户的项目上次停在：${context}。\n用户现在只有 ${minutes} 分钟的碎片时间。\n请直接给出立刻能做的微任务。`;
 
             try {
                 const response = await fetch(API_URL, {
@@ -81,53 +135,84 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ prompt: promptText })
                 });
-
                 const data = await response.json();
-
                 if (data.choices && data.choices.length > 0) {
                     let text = data.choices[0].message.content;
-                    text = text.replace(/```html/g, '').replace(/```/g, '');
-                    taskTextElement.innerHTML = text;
+                    text = text.replace(/```[\w]*/g, '').replace(/```/g, '').trim();
+                    // 把换行转成 <br>
+                    taskTextElement.innerHTML = text.replace(/\n/g, '<br>');
                 } else {
-                    taskTextElement.innerHTML = "获取数据异常，请检查 API 配置或网络。";
+                    taskTextElement.innerHTML = "获取数据异常，请刷新重试。";
                     console.error("API 返回异常:", data);
                 }
-
             } catch (error) {
                 console.error("请求失败:", error);
-                taskTextElement.innerHTML = "哎呀，网络开小差了。请检查你的网络连接。";
+                taskTextElement.innerHTML = "网络开小差了，请检查连接后重试。";
             }
         }
 
-        // 极简番茄钟逻辑
         function startTimer() {
-            const btn = document.getElementById('timer-btn');
-            btn.innerText = "专注中...";
-            btn.disabled = true;
-            btn.classList.replace('bg-green-500', 'bg-gray-400');
+            document.getElementById('start-btn').classList.add('hidden');
+            document.getElementById('abandon-btn').classList.remove('hidden');
 
             countdown = setInterval(() => {
                 timeLeft--;
                 updateTimerDisplay();
+                updateRing();
 
                 if (timeLeft <= 0) {
                     clearInterval(countdown);
-                    alert("时间到！辛苦啦，现在你可以稍作休息，或者记录一下刚才推进了多少。");
-                    btn.innerText = "完成打卡";
-                    btn.disabled = false;
-                    btn.classList.replace('bg-gray-400', 'bg-blue-600');
+                    onTimerDone();
                 }
             }, 1000);
         }
 
-        function updateTimerDisplay() {
-            const minutes = Math.floor(timeLeft / 60);
-            const seconds = timeLeft % 60;
-            document.getElementById('timer-display').innerText =
-                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        function confirmAbandon() {
+            if (confirm("确定要放弃这一局吗？\n（进度不会保存）")) {
+                clearInterval(countdown);
+                restart();
+            }
         }
 
-        // 注册 Service Worker
+        function onTimerDone() {
+            document.getElementById('ring').classList.add('ring-done');
+            setTimeout(() => show('done-section'), 400);
+        }
+
+        function restart() {
+            clearInterval(countdown);
+            timeLeft = totalTime = 0;
+            document.getElementById('start-btn').classList.remove('hidden');
+            document.getElementById('abandon-btn').classList.add('hidden');
+            document.getElementById('progress-note').value = '';
+            document.getElementById('ring').classList.remove('ring-done');
+            resetRing();
+            show('input-section');
+        }
+
+        function show(id) {
+            ['input-section', 'task-section', 'done-section'].forEach(s => {
+                document.getElementById(s).classList.toggle('hidden', s !== id);
+            });
+        }
+
+        function updateTimerDisplay() {
+            const m = Math.floor(timeLeft / 60);
+            const s = timeLeft % 60;
+            document.getElementById('timer-display').innerText =
+                `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        }
+
+        function updateRing() {
+            const progress = totalTime > 0 ? timeLeft / totalTime : 1;
+            const offset = CIRCUMFERENCE * (1 - progress);
+            document.getElementById('ring').style.strokeDashoffset = offset;
+        }
+
+        function resetRing() {
+            document.getElementById('ring').style.strokeDashoffset = 0;
+        }
+
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('/proj-tomato/service-worker.js');
         }
