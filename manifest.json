@@ -2,7 +2,7 @@
   "name": "学一会 - AI番茄钟",
   "short_name": "学一会",
   "description": "不要想整个项目，只看眼前的几分钟。",
-  "start_url": "/Index_v2.html",
+  "start_url": "/proj-tomato/Index_v2.html",
   "display": "standalone",
   "background_color": "#f9fafb",
   "theme_color": "#2563eb",

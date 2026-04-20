@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm pack:*)",
+      "Bash(npm info:*)",
+      "Bash(npm install:*)",
+      "Bash(node generate-icons.js)",
+      "Bash(curl -s https://api.github.com/repos/EricJin73/proj-tomato/contents/)",
+      "Bash(python -c \"import sys,json; [print\\(f['name']\\) for f in json.load\\(sys.stdin\\)]\")",
+      "Bash(curl -s https://api.github.com/repos/EricJin73/proj-tomato/contents/icons)",
+      "Bash(curl:*)"
+    ]
+  }
+}

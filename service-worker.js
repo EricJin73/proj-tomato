@@ -1,7 +1,7 @@
 const CACHE_NAME = 'xueyihui-v1';
 const STATIC_ASSETS = [
-  '/Index_v2.html',
-  '/manifest.json'
+  '/proj-tomato/Index_v2.html',
+  '/proj-tomato/manifest.json'
 ];
 
 // 安装时缓存静态资源
