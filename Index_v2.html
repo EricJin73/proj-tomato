@@ -76,21 +76,16 @@
             const promptText = `你是一个反拖延症教练。你的任务是把庞大的长期项目，拆解为极其简单、具体、不需要消耗意志力就能开始的'微任务'。不要说废话，直接输出 1-2 个具体的行动指令。不同任务之间请使用 HTML 的 <br><br> 标签换行。\n\n用户的项目上次停在：${context}。\n用户现在只有 ${minutes} 分钟的碎片时间。\n请直接给出立刻能做的微任务。`;
 
             try {
-                // 向 Gemini 发送真实的 HTTP 请求
                 const response = await fetch(API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{ parts: [{ text: promptText }] }]
-                    })
+                    body: JSON.stringify({ prompt: promptText })
                 });
 
                 const data = await response.json();
-                
-                // 解析 Gemini API 的返回结果
-                if (data.candidates && data.candidates.length > 0) {
-                    let text = data.candidates[0].content.parts[0].text;
-                    // 清理可能产生的 Markdown 格式干扰，确保网页排版干净
+
+                if (data.choices && data.choices.length > 0) {
+                    let text = data.choices[0].message.content;
                     text = text.replace(/```html/g, '').replace(/```/g, '');
                     taskTextElement.innerHTML = text;
                 } else {
@@ -134,7 +129,7 @@
 
         // 注册 Service Worker
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/service-worker.js');
+            navigator.serviceWorker.register('/proj-tomato/service-worker.js');
         }
     </script>
 </body>
