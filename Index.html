@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>学一会 - 长期项目重启器</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 h-screen flex items-center justify-center p-4 font-sans">
+
+    <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md">
+        <h1 class="text-2xl font-bold text-gray-800 mb-2">⏳ 学一会</h1>
+        <p class="text-sm text-gray-500 mb-6">不要想整个项目，只看眼前的几分钟。</p>
+
+        <div id="input-section" class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">你卡在哪了？(上次的进度)</label>
+                <textarea id="project-context" rows="3" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="例如：论文第三章的数据分析写了一半，不知道怎么开头..."></textarea>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">你现在有多少碎片时间？(分钟)</label>
+                <input type="number" id="available-time" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="15">
+            </div>
+            <button onclick="generateTasks()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition">
+                帮我拆解任务
+            </button>
+        </div>
+
+        <div id="task-section" class="hidden space-y-6">
+            <div class="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                <h2 class="text-sm font-bold text-blue-800 mb-2">💡 AI 建议的微任务：</h2>
+                <p id="ai-task-text" class="text-gray-700 text-sm">正在思考中...</p>
+            </div>
+            
+            <div class="text-center">
+                <div id="timer-display" class="text-5xl font-mono font-bold text-gray-800 mb-4">15:00</div>
+                <button id="timer-btn" onclick="startTimer()" class="w-full bg-green-500 text-white font-bold py-3 rounded-lg hover:bg-green-600 transition">
+                    开始专注
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let countdown;
+        let timeLeft = 0;
+
+        // 模拟调用 AI 接口的函数
+        function generateTasks() {
+            const context = document.getElementById('project-context').value;
+            const minutes = document.getElementById('available-time').value;
+
+            if (!context || !minutes) {
+                alert("请先告诉我要做什么，以及你有多少时间哦！");
+                return;
+            }
+
+            // 切换 UI
+            document.getElementById('input-section').classList.add('hidden');
+            document.getElementById('task-section').classList.remove('hidden');
+            
+            timeLeft = minutes * 60;
+            updateTimerDisplay();
+
+            // 这里目前是假数据（Mock），下一步我们把它替换成真实的 AI API 请求
+            document.getElementById('ai-task-text').innerHTML = "加载中...";
+            setTimeout(() => {
+                document.getElementById('ai-task-text').innerHTML = 
+                    `1. 打开文档，花 3 分钟通读一下你上次写的最后两段话。<br>
+                     2. 用剩下的时间，只写下 3 个关于数据分析的关键词，不用管句子通不通顺。`;
+            }, 1000);
+        }
+
+        // 极简番茄钟逻辑
+        function startTimer() {
+            const btn = document.getElementById('timer-btn');
+            btn.innerText = "专注中...";
+            btn.disabled = true;
+            btn.classList.replace('bg-green-500', 'bg-gray-400');
+
+            countdown = setInterval(() => {
+                timeLeft--;
+                updateTimerDisplay();
+
+                if (timeLeft <= 0) {
+                    clearInterval(countdown);
+                    alert("时间到！辛苦啦，现在记录一下刚才推进了多少吧。");
+                    btn.innerText = "完成打卡";
+                    btn.disabled = false;
+                    btn.classList.replace('bg-gray-400', 'bg-blue-600');
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            document.getElementById('timer-display').innerText = 
+                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+    </script>
+</body>
+</html>
